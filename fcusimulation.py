@@ -40,7 +40,7 @@ def simulate_system(temp_indoor, rh_indoor, temp_outdoor, rh_outdoor, fan_speed,
     temp_indoor = np.clip(temp_indoor, 18, 26)  # temperature range 18-26°C
     rh_indoor = np.clip(rh_indoor, 30, 70)  # RH range 30-70%
 
-    return temp_indoor, rh_indoor
+    return temp_indoor, rh_indoor, cooling_effect, heating_effect, fan_effect
 
 # Streamlit interface
 st.title("Fan Coil Unit (FCU) Control Simulation")
@@ -57,7 +57,9 @@ hot_water_valve = st.sidebar.slider("Hot Water Valve (%)", 0, 100, 50)
 oa_damper = st.sidebar.slider("Outdoor Air Damper (%)", 0, 100, 50)
 
 # Simulate the system with the selected values
-temp_indoor, rh_indoor = simulate_system(temp_indoor, rh_indoor, temp_outdoor, rh_outdoor, fan_speed, cold_water_valve / 100, hot_water_valve / 100, oa_damper / 100)
+temp_indoor, rh_indoor, cooling_effect, heating_effect, fan_effect = simulate_system(
+    temp_indoor, rh_indoor, temp_outdoor, rh_outdoor, fan_speed, cold_water_valve / 100, hot_water_valve / 100, oa_damper / 100
+)
 
 # Display Results
 st.write(f"### Indoor Conditions")
@@ -66,8 +68,18 @@ st.write(f"Indoor Humidity: {rh_indoor:.2f}%")
 
 # Plot Temperature and Humidity Over Time
 time_steps = np.linspace(0, 10, 100)
-temperature = [temp_indoor + cooling_effect - heating_effect + fan_effect for _ in time_steps]
-humidity = [rh_indoor - cooling_effect * 0.1 + heating_effect * 0.05 for _ in time_steps]
+
+# Initialize arrays for temperature and humidity over time
+temperature = []
+humidity = []
+
+# Simulate the values over time steps
+for _ in time_steps:
+    temp_indoor, rh_indoor, cooling_effect, heating_effect, fan_effect = simulate_system(
+        temp_indoor, rh_indoor, temp_outdoor, rh_outdoor, fan_speed, cold_water_valve / 100, hot_water_valve / 100, oa_damper / 100
+    )
+    temperature.append(temp_indoor)
+    humidity.append(rh_indoor)
 
 # Plotting
 fig, ax1 = plt.subplots(figsize=(10, 6))
