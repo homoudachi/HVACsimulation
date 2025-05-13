@@ -56,10 +56,16 @@ cold_water_valve = st.sidebar.slider("Cold Water Valve (%)", 0, 100, 50)
 hot_water_valve = st.sidebar.slider("Hot Water Valve (%)", 0, 100, 50)
 oa_damper = st.sidebar.slider("Outdoor Air Damper (%)", 0, 100, 50)
 
-# Simulate the system with the selected values
-temp_indoor, rh_indoor, cooling_effect, heating_effect, fan_effect = simulate_system(
-    temp_indoor, rh_indoor, temp_outdoor, rh_outdoor, fan_speed, cold_water_valve / 100, hot_water_valve / 100, oa_damper / 100
-)
+# Simulate the system over time
+time_steps = 100
+temp_values = []
+rh_values = []
+for _ in range(time_steps):
+    temp_indoor, rh_indoor, cooling_effect, heating_effect, fan_effect = simulate_system(
+        temp_indoor, rh_indoor, temp_outdoor, rh_outdoor, fan_speed, cold_water_valve / 100, hot_water_valve / 100, oa_damper / 100
+    )
+    temp_values.append(temp_indoor)
+    rh_values.append(rh_indoor)
 
 # Display Results
 st.write(f"### Indoor Conditions")
@@ -67,31 +73,16 @@ st.write(f"Indoor Temperature: {temp_indoor:.2f}°C")
 st.write(f"Indoor Humidity: {rh_indoor:.2f}%")
 
 # Plot Temperature and Humidity Over Time
-time_steps = np.linspace(0, 10, 100)
-
-# Initialize arrays for temperature and humidity over time
-temperature = []
-humidity = []
-
-# Simulate the values over time steps
-for _ in time_steps:
-    temp_indoor, rh_indoor, cooling_effect, heating_effect, fan_effect = simulate_system(
-        temp_indoor, rh_indoor, temp_outdoor, rh_outdoor, fan_speed, cold_water_valve / 100, hot_water_valve / 100, oa_damper / 100
-    )
-    temperature.append(temp_indoor)
-    humidity.append(rh_indoor)
-
-# Plotting
 fig, ax1 = plt.subplots(figsize=(10, 6))
 
-ax1.set_xlabel('Time (min)')
+ax1.set_xlabel('Time Steps')
 ax1.set_ylabel('Temperature (°C)', color='tab:red')
-ax1.plot(time_steps, temperature, color='tab:red', label='Temperature')
+ax1.plot(temp_values, color='tab:red', label='Temperature')
 ax1.tick_params(axis='y', labelcolor='tab:red')
 
 ax2 = ax1.twinx()  
 ax2.set_ylabel('Humidity (%)', color='tab:blue')  
-ax2.plot(time_steps, humidity, color='tab:blue', label='Humidity')
+ax2.plot(rh_values, color='tab:blue', label='Humidity')
 ax2.tick_params(axis='y', labelcolor='tab:blue')
 
 fig.tight_layout()  
